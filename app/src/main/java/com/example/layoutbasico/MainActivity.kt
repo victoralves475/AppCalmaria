@@ -1,4 +1,4 @@
- package com.example.layoutbasico
+package com.example.layoutbasico
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -42,6 +42,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,59 +61,57 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-//            LayoutBasicoTheme {
-//                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//                    SearchBar(
-//                        modifier = Modifier.padding(innerPadding)
-//                    )
-//                }
-//            }
             CalmariaApp()
         }
     }
 }
 
- // Pesquisa
+// busca
 @Composable
 fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-        TextField(
-            value = "",
-            onValueChange = {},
-            leadingIcon = {
-                Icon(imageVector = Icons.Default.Search,
-                    contentDescription = null)
-            },
-            colors = TextFieldDefaults.colors(
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                unfocusedIndicatorColor = MaterialTheme.colorScheme.secondary
-            ),
-            placeholder = {
-                Text(stringResource(R.string.placeholder_search))
-            },
-            modifier = modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-        )
+    TextField(
+        value = query,
+        onValueChange = onQueryChange,
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null
+            )
+        },
+        colors = TextFieldDefaults.colors(
+            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.secondary
+        ),
+        placeholder = {
+            Text(stringResource(R.string.placeholder_search))
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+    )
 }
 
- @Preview(showBackground = true)
- @Composable
- fun SearchBarPreview() {
-     LayoutBasicoTheme {
-         SearchBar()
-     }
- }
+@Preview(showBackground = true)
+@Composable
+fun SearchBarPreview() {
+    LayoutBasicoTheme {
+        // Exemplo de preview com query vazia
+        SearchBar(query = "", onQueryChange = {})
+    }
+}
 
- //Alinhamento
- @Composable
- fun AlignYourBodyElement(
-     @DrawableRes imagem: Int,
-     @StringRes texto: Int,
-     modifier: Modifier = Modifier
- ) {
-    Column (
+// Elemento "AlignYourBody"
+@Composable
+fun AlignYourBodyElement(
+    @DrawableRes imagem: Int,
+    @StringRes texto: Int,
+    modifier: Modifier = Modifier
+) {
+    Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
@@ -120,40 +122,40 @@ fun SearchBar(
             modifier = Modifier
                 .size(88.dp)
                 .clip(CircleShape)
-
         )
-        Text(text = stringResource(texto),
+        Text(
+            text = stringResource(texto),
             modifier = Modifier.paddingFromBaseline(top = 24.dp, bottom = 8.dp),
             style = MaterialTheme.typography.bodyMedium
-            )
+        )
     }
- }
+}
 
- @Preview(showBackground = true)
- @Composable
- fun AlignYourBodyElementPreview() {
-     LayoutBasicoTheme {
-         AlignYourBodyElement(
-             texto = R.string.ab1_inversions,
-             imagem = R.drawable.ab1_inversions,
-             modifier = Modifier.padding(8.dp)
-         )
-     }
- }
+@Preview(showBackground = true)
+@Composable
+fun AlignYourBodyElementPreview() {
+    LayoutBasicoTheme {
+        AlignYourBodyElement(
+            texto = R.string.ab1_inversions,
+            imagem = R.drawable.ab1_inversions,
+            modifier = Modifier.padding(8.dp)
+        )
+    }
+}
 
-// Card
- @Composable
- fun FavoriteCollectionCard(
-     @DrawableRes imagem: Int,
-     @StringRes texto: Int,
-     modifier: Modifier = Modifier
- ) {
+// Card para coleções favoritas
+@Composable
+fun FavoriteCollectionCard(
+    @DrawableRes imagem: Int,
+    @StringRes texto: Int,
+    modifier: Modifier = Modifier
+) {
     Surface(
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surfaceVariant,
         modifier = modifier
     ) {
-        Row (
+        Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.width(255.dp)
         ) {
@@ -170,49 +172,53 @@ fun SearchBar(
             )
         }
     }
- }
+}
 
- @Preview(showBackground = true)
- @Composable
- fun FavoriteCollectionCardPreview() {
-     LayoutBasicoTheme {
-         FavoriteCollectionCard(
-             texto = R.string.fc2_nature_meditations,
-             imagem = R.drawable.fc2_nature_meditations,
-             modifier = Modifier.padding(8.dp)
-         )
-     }
- }
+@Preview(showBackground = true)
+@Composable
+fun FavoriteCollectionCardPreview() {
+    LayoutBasicoTheme {
+        FavoriteCollectionCard(
+            texto = R.string.fc2_nature_meditations,
+            imagem = R.drawable.fc2_nature_meditations,
+            modifier = Modifier.padding(8.dp)
+        )
+    }
+}
 
-// Linha
+// Linha de elementos "AlignYourBody"
 @Composable
 fun AlignYourBodyRow(
+    data: List<DrawableStringPair>,
     modifier: Modifier = Modifier
 ) {
-    LazyRow (
+    LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(horizontal = 16.dp),
         modifier = modifier
     ) {
-        items(alignYourBodyData){
-            item -> AlignYourBodyElement(item.drawable, item.text)
-         }
+        items(data) { item ->
+            AlignYourBodyElement(
+                imagem = item.drawable,
+                texto = item.text
+            )
+        }
     }
 }
 
- @Preview(showBackground = true)
- @Composable
- fun AlignYourBodyRowPreview() {
-     LayoutBasicoTheme {
-         AlignYourBodyRow()
-     }
- }
+@Preview(showBackground = true)
+@Composable
+fun AlignYourBodyRowPreview() {
+    LayoutBasicoTheme {
+        AlignYourBodyRow(data = alignYourBodyData)
+    }
+}
 
-//Grade
- @Composable
- fun FavoriteCollectionsGrid(
-     modifier: Modifier = Modifier
- ) {
+// Grade horizontal de coleções favoritas
+@Composable
+fun FavoriteCollectionsGrid(
+    modifier: Modifier = Modifier
+) {
     LazyHorizontalGrid(
         rows = GridCells.Fixed(2),
         contentPadding = PaddingValues(horizontal = 16.dp),
@@ -220,78 +226,97 @@ fun AlignYourBodyRow(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier.height(168.dp)
     ) {
-        items(favoriteCollectionsData) {
-            item -> FavoriteCollectionCard(item.drawable, item.text,
-                )
+        items(favoriteCollectionsData) { item ->
+            FavoriteCollectionCard(
+                imagem = item.drawable,
+                texto = item.text
+            )
         }
     }
- }
+}
 
- @Preview(showBackground = true)
- @Composable
- fun FavoriteCollectionsGridPreview() {
-     LayoutBasicoTheme {
-         FavoriteCollectionsGrid()
-     }
- }
+@Preview(showBackground = true)
+@Composable
+fun FavoriteCollectionsGridPreview() {
+    LayoutBasicoTheme {
+        FavoriteCollectionsGrid()
+    }
+}
 
-
-// Tela Inicial
- @Composable
- fun HomeSection(
+// Seção da tela que agrupa um título e um conteúdo
+@Composable
+fun HomeSection(
     @StringRes title: Int,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
- ) {
-     Column(modifier) {
-         Text(
-             text = stringResource(title),
-             style = MaterialTheme.typography.titleMedium,
-             modifier = Modifier
-                 .paddingFromBaseline(top = 40.dp, bottom = 16.dp)
-                 .padding(horizontal = 16.dp)
-         )
-         content()
-     }
- }
+) {
+    Column(modifier) {
+        Text(
+            text = stringResource(title),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier
+                .paddingFromBaseline(top = 40.dp, bottom = 16.dp)
+                .padding(horizontal = 16.dp)
+        )
+        content()
+    }
+}
 
- @Preview(showBackground = true)
- @Composable
- fun HomeSectionPreview() {
-     LayoutBasicoTheme {
-         HomeSection(R.string.align_your_body) {
-             AlignYourBodyRow()
-         }
-     }
- }
+@Preview(showBackground = true)
+@Composable
+fun HomeSectionPreview() {
+    LayoutBasicoTheme {
+        HomeSection(R.string.align_your_body) {
+            AlignYourBodyRow(data = alignYourBodyData)
+        }
+    }
+}
 
- @Composable
- fun HomeScreen(modifier: Modifier = Modifier) {
-     Column (
-         modifier.verticalScroll(rememberScrollState())
-     ) {
-         Spacer(Modifier.height(16.dp))
-         SearchBar(Modifier.height(16.dp))
-         HomeSection(R.string.align_your_body) {
-             AlignYourBodyRow()
-         }
-         HomeSection(R.string.favorite_collections) {
-             FavoriteCollectionsGrid()
-         }
-         Spacer(Modifier.height(16.dp))
-     }
- }
+// Tela principal que incorpora o campo de busca e os elementos filtrados
+@Composable
+fun HomeScreen(modifier: Modifier = Modifier) {
+    // Estado para armazenar a query de busca
+    var query by remember { mutableStateOf("") }
 
- @Preview(showBackground = true)
- @Composable
- fun HomeScreenPreview() {
-     LayoutBasicoTheme {
-         HomeScreen()
-     }
- }
+    // Filtra os dados de acordo com a query (ignora diferenças entre maiúsculas e minúsculas)
+    val filteredData = if (query.isBlank()) {
+        alignYourBodyData
+    } else {
+        alignYourBodyData.filter { item ->
+            stringResource(item.text).contains(query, ignoreCase = true)
+        }
+    }
 
-// Navegacao
- @Composable
+    Column(modifier.verticalScroll(rememberScrollState())) {
+        Spacer(modifier = Modifier.height(16.dp))
+        // Campo de busca com padding horizontal
+        SearchBar(
+            query = query,
+            onQueryChange = { query = it },
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        // Seção "Align Your Body" com os itens filtrados
+        HomeSection(R.string.align_your_body) {
+            AlignYourBodyRow(data = filteredData)
+        }
+        // Seção de coleções favoritas (sem filtro)
+        HomeSection(R.string.favorite_collections) {
+            FavoriteCollectionsGrid()
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+    LayoutBasicoTheme {
+        HomeScreen()
+    }
+}
+
+// Barra de navegação inferior
+@Composable
 private fun BarraNavegacao(modifier: Modifier = Modifier) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -326,44 +351,40 @@ private fun BarraNavegacao(modifier: Modifier = Modifier) {
     }
 }
 
-
-//Scaffold
+// Scaffold principal que une a tela inicial e a barra de navegação
 @Composable
 fun CalmariaApp() {
     LayoutBasicoTheme {
-        Scaffold(bottomBar = {
-            BarraNavegacao()
-        }) {
-            padding ->
-                HomeScreen(Modifier.padding(padding))
+        Scaffold(
+            bottomBar = { BarraNavegacao() }
+        ) { padding ->
+            HomeScreen(Modifier.padding(padding))
         }
     }
 }
 
+// Dados de exemplo para "Align Your Body"
+private val alignYourBodyData = listOf(
+    R.drawable.ab1_inversions to R.string.ab1_inversions,
+    R.drawable.ab2_quick_yoga to R.string.ab2_quick_yoga,
+    R.drawable.ab3_stretching to R.string.ab3_stretching,
+    R.drawable.ab4_tabata to R.string.ab4_tabata,
+    R.drawable.ab5_hiit to R.string.ab5_hiit,
+    R.drawable.ab6_pre_natal_yoga to R.string.ab6_pre_natal_yoga
+).map { DrawableStringPair(it.first, it.second) }
 
+// Dados de exemplo para coleções favoritas
+private val favoriteCollectionsData = listOf(
+    R.drawable.fc1_short_mantras to R.string.fc1_short_mantras,
+    R.drawable.fc2_nature_meditations to R.string.fc2_nature_meditations,
+    R.drawable.fc3_stress_and_anxiety to R.string.fc3_stress_and_anxiety,
+    R.drawable.fc4_self_massage to R.string.fc4_self_massage,
+    R.drawable.fc5_overwhelmed to R.string.fc5_overwhelmed,
+    R.drawable.fc6_nightly_wind_down to R.string.fc6_nightly_wind_down
+).map { DrawableStringPair(it.first, it.second) }
 
-
-
-
- private val alignYourBodyData = listOf(
-     R.drawable.ab1_inversions to R.string.ab1_inversions,
-     R.drawable.ab2_quick_yoga to R.string.ab2_quick_yoga,
-     R.drawable.ab3_stretching to R.string.ab3_stretching,
-     R.drawable.ab4_tabata to R.string.ab4_tabata,
-     R.drawable.ab5_hiit to R.string.ab5_hiit,
-     R.drawable.ab6_pre_natal_yoga to R.string.ab6_pre_natal_yoga
- ).map { DrawableStringPair(it.first, it.second) }
-
- private val favoriteCollectionsData = listOf(
-     R.drawable.fc1_short_mantras to R.string.fc1_short_mantras,
-     R.drawable.fc2_nature_meditations to R.string.fc2_nature_meditations,
-     R.drawable.fc3_stress_and_anxiety to R.string.fc3_stress_and_anxiety,
-     R.drawable.fc4_self_massage to R.string.fc4_self_massage,
-     R.drawable.fc5_overwhelmed to R.string.fc5_overwhelmed,
-     R.drawable.fc6_nightly_wind_down to R.string.fc6_nightly_wind_down
- ).map { DrawableStringPair(it.first, it.second) }
-
- private data class DrawableStringPair(
-     @DrawableRes val drawable: Int,
-     @StringRes val text: Int
- )
+// Classe auxiliar para armazenar pares de recurso drawable e string
+data class DrawableStringPair(
+    @DrawableRes val drawable: Int,
+    @StringRes val text: Int
+)
