@@ -55,6 +55,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.layoutbasico.ui.theme.LayoutBasicoTheme
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,7 +71,154 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// busca
+//--------------------------------------------------
+// CALMARIA APP
+//--------------------------------------------------
+@Composable
+fun CalmariaApp() {
+    LayoutBasicoTheme {
+        // Cria o NavController para gerenciar a navegação
+        val navController = rememberNavController()
+        Scaffold(
+            bottomBar = { BottomNavigationBar(navController = navController) }
+        ) { padding ->
+            NavHost(
+                navController = navController,
+                startDestination = "home",
+                modifier = Modifier.padding(padding)
+            ) {
+                composable("home") {
+                    HomeScreen()
+                }
+                composable("profile") {
+                    ProfileScreen()
+                }
+            }
+        }
+    }
+}
+
+//--------------------------------------------------
+// BARRA DE NAVEGAÇÃO INFERIOR
+//--------------------------------------------------
+@Composable
+fun BottomNavigationBar(navController: NavController) {
+    // Observa a rota atual para marcar o item selecionado
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceVariant) {
+        NavigationBarItem(
+            icon = { Icon(imageVector = Icons.Default.Home, contentDescription = null) },
+            label = { Text(stringResource(R.string.bottom_navigation_home)) },
+            selected = currentRoute == "home",
+            onClick = {
+                navController.navigate("home") {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+        )
+        NavigationBarItem(
+            icon = { Icon(imageVector = Icons.Default.AccountCircle, contentDescription = null) },
+            label = { Text(stringResource(R.string.bottom_navigation_profile)) },
+            selected = currentRoute == "profile",
+            onClick = {
+                navController.navigate("profile") {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+        )
+    }
+}
+
+//--------------------------------------------------
+// TELA HOME
+//--------------------------------------------------
+@Composable
+fun HomeScreen(modifier: Modifier = Modifier) {
+    // Estado para armazenar a query de busca
+    var query by remember { mutableStateOf("") }
+
+    // Filtra os dados com base na query
+    val filteredData = if (query.isBlank()) {
+        alignYourBodyData
+    } else {
+        alignYourBodyData.filter { item ->
+            stringResource(item.text).contains(query, ignoreCase = true)
+        }
+    }
+
+    Column(modifier.verticalScroll(rememberScrollState())) {
+        Spacer(modifier = Modifier.height(16.dp))
+        // Campo de busca
+        SearchBar(
+            query = query,
+            onQueryChange = { query = it },
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        // Seção "Align Your Body" com os itens filtrados
+        HomeSection(R.string.align_your_body) {
+            AlignYourBodyRow(data = filteredData)
+        }
+        // Seção "Favorite Collections" sem filtro
+        HomeSection(R.string.favorite_collections) {
+            FavoriteCollectionsGrid()
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+    LayoutBasicoTheme {
+        HomeScreen()
+    }
+}
+
+//--------------------------------------------------
+// TELA PROFILE
+//--------------------------------------------------
+@Composable
+fun ProfileScreen(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.AccountCircle,
+            contentDescription = "Profile Icon",
+            modifier = Modifier.size(120.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = "Nome: Victor", style = MaterialTheme.typography.titleMedium)
+        Text(text = "Email: victor.antonio@ifpb.edu.br", style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = "Bio: Desenvolvedor mobile apaixonado por tecnologia!",
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ProfileScreenPreview() {
+    LayoutBasicoTheme {
+        ProfileScreen()
+    }
+}
+
+//--------------------------------------------------
+// COMPONENTES DA TELA HOME
+//--------------------------------------------------
+
 @Composable
 fun SearchBar(
     query: String,
@@ -86,9 +238,7 @@ fun SearchBar(
             focusedIndicatorColor = MaterialTheme.colorScheme.primary,
             unfocusedIndicatorColor = MaterialTheme.colorScheme.secondary
         ),
-        placeholder = {
-            Text(stringResource(R.string.placeholder_search))
-        },
+        placeholder = { Text(stringResource(R.string.placeholder_search)) },
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
@@ -99,7 +249,6 @@ fun SearchBar(
 @Composable
 fun SearchBarPreview() {
     LayoutBasicoTheme {
-        // Exemplo de preview com query vazia
         SearchBar(query = "", onQueryChange = {})
     }
 }
@@ -186,7 +335,7 @@ fun FavoriteCollectionCardPreview() {
     }
 }
 
-// Linha de elementos "AlignYourBody"
+// Linha de elementos "AlignYourBody" (recebe lista filtrada)
 @Composable
 fun AlignYourBodyRow(
     data: List<DrawableStringPair>,
@@ -248,7 +397,7 @@ fun FavoriteCollectionsGridPreview() {
 fun HomeSection(
     @StringRes title: Int,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
     Column(modifier) {
         Text(
@@ -272,98 +421,9 @@ fun HomeSectionPreview() {
     }
 }
 
-// Tela principal que incorpora o campo de busca e os elementos filtrados
-@Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
-    // Estado para armazenar a query de busca
-    var query by remember { mutableStateOf("") }
-
-    // Filtra os dados de acordo com a query (ignora diferenças entre maiúsculas e minúsculas)
-    val filteredData = if (query.isBlank()) {
-        alignYourBodyData
-    } else {
-        alignYourBodyData.filter { item ->
-            stringResource(item.text).contains(query, ignoreCase = true)
-        }
-    }
-
-    Column(modifier.verticalScroll(rememberScrollState())) {
-        Spacer(modifier = Modifier.height(16.dp))
-        // Campo de busca com padding horizontal
-        SearchBar(
-            query = query,
-            onQueryChange = { query = it },
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        // Seção "Align Your Body" com os itens filtrados
-        HomeSection(R.string.align_your_body) {
-            AlignYourBodyRow(data = filteredData)
-        }
-        // Seção de coleções favoritas (sem filtro)
-        HomeSection(R.string.favorite_collections) {
-            FavoriteCollectionsGrid()
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    LayoutBasicoTheme {
-        HomeScreen()
-    }
-}
-
-// Barra de navegação inferior
-@Composable
-private fun BarraNavegacao(modifier: Modifier = Modifier) {
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = modifier
-    ) {
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = null
-                )
-            },
-            label = {
-                Text(stringResource(R.string.bottom_navigation_home))
-            },
-            selected = true,
-            onClick = {}
-        )
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = null
-                )
-            },
-            label = {
-                Text(stringResource(R.string.bottom_navigation_profile))
-            },
-            selected = false,
-            onClick = {}
-        )
-    }
-}
-
-// Scaffold principal que une a tela inicial e a barra de navegação
-@Composable
-fun CalmariaApp() {
-    LayoutBasicoTheme {
-        Scaffold(
-            bottomBar = { BarraNavegacao() }
-        ) { padding ->
-            HomeScreen(Modifier.padding(padding))
-        }
-    }
-}
-
-// Dados de exemplo para "Align Your Body"
+//--------------------------------------------------
+// DADOS DE EXEMPLO
+//--------------------------------------------------
 private val alignYourBodyData = listOf(
     R.drawable.ab1_inversions to R.string.ab1_inversions,
     R.drawable.ab2_quick_yoga to R.string.ab2_quick_yoga,
@@ -373,7 +433,6 @@ private val alignYourBodyData = listOf(
     R.drawable.ab6_pre_natal_yoga to R.string.ab6_pre_natal_yoga
 ).map { DrawableStringPair(it.first, it.second) }
 
-// Dados de exemplo para coleções favoritas
 private val favoriteCollectionsData = listOf(
     R.drawable.fc1_short_mantras to R.string.fc1_short_mantras,
     R.drawable.fc2_nature_meditations to R.string.fc2_nature_meditations,
@@ -383,7 +442,6 @@ private val favoriteCollectionsData = listOf(
     R.drawable.fc6_nightly_wind_down to R.string.fc6_nightly_wind_down
 ).map { DrawableStringPair(it.first, it.second) }
 
-// Classe auxiliar para armazenar pares de recurso drawable e string
 data class DrawableStringPair(
     @DrawableRes val drawable: Int,
     @StringRes val text: Int
